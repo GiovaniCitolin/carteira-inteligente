@@ -1,0 +1,9 @@
+
+body{margin:0;font-family:Arial;background:#0d1117;color:#fff;display:flex}
+.sidebar{width:240px;background:#161b22;padding:20px;height:100vh}
+.sidebar button{width:100%;margin:5px 0;padding:12px}
+.content{flex:1;padding:20px}
+.hidden{display:none}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #333;padding:8px}
+input,button{padding:10px;margin:5px}
