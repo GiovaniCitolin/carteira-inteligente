@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carteira Inteligente Pro</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="sidebar">
+<h2>Carteira Inteligente</h2>
+<button onclick="showTab('aporte')">Aportes</button>
+<button onclick="showTab('simulador')">Simulador</button>
+<button onclick="showTab('ativos')">Ativos</button>
+</div>
+
+<div class="content">
+<section id="aporte" class="tab">
+<h1>Aporte Mensal</h1>
+<input id="aporteValor" type="number" value="1500">
+<button onclick="calcular()">Calcular</button>
+<table><thead><tr><th>Ativo</th><th>%</th><th>Valor</th><th>Cotas</th></tr></thead><tbody id="resultado"></tbody></table>
+</section>
+
+<section id="simulador" class="tab hidden">
+<h1>Simulador</h1>
+<input id="pat" type="number" value="39000">
+<input id="mensal" type="number" value="1500">
+<input id="anos" type="number" value="13">
+<input id="taxa" type="number" value="10">
+<button onclick="simular()">Simular</button>
+<h2 id="resultadoSim"></h2>
+</section>
+
+<section id="ativos" class="tab hidden">
+<h1>Cadastro de Ativos</h1>
+<p>Edite o array no app.js para alterar percentuais e cotações.</p>
+</section>
+</div>
+<script src="js/app.js"></script>
+</body></html>
