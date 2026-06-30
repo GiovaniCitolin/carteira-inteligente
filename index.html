@@ -1,47 +1,58 @@
-<!DOCTYPE html>
-<html lang="pt-BR"><head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Minha Carteira</title>
-<link rel="manifest" href="manifest.json">
+<!doctype html><html lang="pt-BR"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Carteira</title>
 <style>
-body{font-family:Arial;margin:20px;max-width:700px}
+body{font-family:Arial;max-width:900px;margin:20px auto;padding:10px}
 input,button{padding:8px;margin:4px}
-table{width:100%;border-collapse:collapse;margin-top:15px}
-th,td{border:1px solid #ccc;padding:8px;text-align:center}
-tfoot{font-weight:bold}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ddd;padding:8px;text-align:center}
 </style></head><body>
 <h2>Minha Carteira</h2>
-<input id="ativo" placeholder="IVVB11">
-<input id="qtd" type="number" placeholder="Cotas">
-<button onclick="add()">Adicionar</button>
-<table><thead><tr><th>Ativo</th><th>Cotas</th><th>Preço</th><th>Total</th></tr></thead>
-<tbody id="tb"></tbody>
-<tfoot><tr><td colspan="3">Patrimônio</td><td id="pat">R$0,00</td></tr></tfoot>
-</table>
+<p>API Key BRAPI (opcional): <input id="apikey" placeholder="Cole sua chave"></p>
+<input id="ativo" placeholder="Ativo (IVVB11)">
+<input id="qtd" type="number" placeholder="Qtd">
+<input id="compra" type="number" step="0.01" placeholder="Preço de compra">
+<button onclick="adicionar()">Adicionar</button>
+<button onclick="render()">Atualizar Cotações</button>
+<p id="hora"></p>
+<table>
+<thead><tr><th>Ativo</th><th>Qtd</th><th>Compra</th><th>Atual</th><th>Investido</th><th>Atual</th><th>Resultado</th></tr></thead>
+<tbody id="tb"></tbody></table>
+<h3 id="total"></h3>
 <script>
-let carteira=JSON.parse(localStorage.getItem("carteira")||"[]");
-async function preco(sym){
- try{
- let r=await fetch("https://brapi.dev/api/quote/"+sym);
- let j=await r.json();
- return j.results[0].regularMarketPrice||0;
- }catch(e){return 0;}
-}
-async function render(){
- let tb=document.getElementById("tb"),pat=0;tb.innerHTML="";
- for(let a of carteira){
-   let p=await preco(a.ativo);
-   let t=p*a.qtd; pat+=t;
-   tb.innerHTML+=`<tr><td>${a.ativo}</td><td>${a.qtd}</td><td>R$ ${p.toFixed(2)}</td><td>R$ ${t.toFixed(2)}</td></tr>`;
- }
- document.getElementById("pat").innerText="R$ "+pat.toFixed(2);
-}
-function add(){
- carteira.push({ativo:ativo.value.toUpperCase(),qtd:Number(qtd.value)});
- localStorage.setItem("carteira",JSON.stringify(carteira));
- ativo.value="";qtd.value="";
+let carteira=JSON.parse(localStorage.getItem("cart")||"[]");
+document.getElementById("apikey").value=localStorage.getItem("apikey")||"";
+apikey.onchange=()=>localStorage.setItem("apikey",apikey.value);
+function adicionar(){
+ carteira.push({ativo:ativo.value.toUpperCase(),qtd:+qtd.value,compra:+compra.value});
+ localStorage.setItem("cart",JSON.stringify(carteira));
+ ativo.value=qtd.value=compra.value="";
  render();
 }
-if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js")}
-render();
+async function cotacao(a){
+ try{
+   let url="https://brapi.dev/api/quote/"+a;
+   let k=localStorage.getItem("apikey");
+   let opt={headers:{}};
+   if(k) opt.headers.Authorization="Bearer "+k;
+   let r=await fetch(url,opt);
+   let j=await r.json();
+   return j.results?.[0]?.regularMarketPrice??null;
+ }catch(e){return null;}
+}
+async function render(){
+ let tb=document.getElementById("tb");tb.innerHTML="";
+ let inv=0,atu=0;
+ for(let i of carteira){
+   let p=await cotacao(i.ativo);
+   let invest=i.compra*i.qtd;
+   let atual=(p??0)*i.qtd;
+   inv+=invest;atu+=atual;
+   let res=atual-invest;
+   tb.innerHTML+=`<tr><td>${i.ativo}</td><td>${i.qtd}</td><td>R$ ${i.compra.toFixed(2)}</td><td>${p==null?"Erro API":"R$ "+p.toFixed(2)}</td><td>R$ ${invest.toFixed(2)}</td><td>R$ ${atual.toFixed(2)}</td><td>${res>=0?"+":""}R$ ${res.toFixed(2)}</td></tr>`;
+ }
+ total.innerHTML=`Investido: R$ ${inv.toFixed(2)} | Atual: R$ ${atu.toFixed(2)} | Resultado: ${(atu-inv>=0?"+":"")}R$ ${(atu-inv).toFixed(2)}`;
+ hora.textContent="Última atualização: "+new Date().toLocaleString();
+}
+render(); setInterval(render,300000);
 </script></body></html>
