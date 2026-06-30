@@ -1,42 +1,47 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Carteira Inteligente Pro</title>
+<html lang="pt-BR"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minha Carteira</title>
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-<div class="sidebar">
-<h2>Carteira Inteligente</h2>
-<button onclick="showTab('aporte')">Aportes</button>
-<button onclick="showTab('simulador')">Simulador</button>
-<button onclick="showTab('ativos')">Ativos</button>
-</div>
-
-<div class="content">
-<section id="aporte" class="tab">
-<h1>Aporte Mensal</h1>
-<input id="aporteValor" type="number" value="1500">
-<button onclick="calcular()">Calcular</button>
-<table><thead><tr><th>Ativo</th><th>%</th><th>Valor</th><th>Cotas</th></tr></thead><tbody id="resultado"></tbody></table>
-</section>
-
-<section id="simulador" class="tab hidden">
-<h1>Simulador</h1>
-<input id="pat" type="number" value="39000">
-<input id="mensal" type="number" value="1500">
-<input id="anos" type="number" value="13">
-<input id="taxa" type="number" value="10">
-<button onclick="simular()">Simular</button>
-<h2 id="resultadoSim"></h2>
-</section>
-
-<section id="ativos" class="tab hidden">
-<h1>Cadastro de Ativos</h1>
-<p>Edite o array no app.js para alterar percentuais e cotações.</p>
-</section>
-</div>
-<script src="js/app.js"></script>
-</body></html>
+<style>
+body{font-family:Arial;margin:20px;max-width:700px}
+input,button{padding:8px;margin:4px}
+table{width:100%;border-collapse:collapse;margin-top:15px}
+th,td{border:1px solid #ccc;padding:8px;text-align:center}
+tfoot{font-weight:bold}
+</style></head><body>
+<h2>Minha Carteira</h2>
+<input id="ativo" placeholder="IVVB11">
+<input id="qtd" type="number" placeholder="Cotas">
+<button onclick="add()">Adicionar</button>
+<table><thead><tr><th>Ativo</th><th>Cotas</th><th>Preço</th><th>Total</th></tr></thead>
+<tbody id="tb"></tbody>
+<tfoot><tr><td colspan="3">Patrimônio</td><td id="pat">R$0,00</td></tr></tfoot>
+</table>
+<script>
+let carteira=JSON.parse(localStorage.getItem("carteira")||"[]");
+async function preco(sym){
+ try{
+ let r=await fetch("https://brapi.dev/api/quote/"+sym);
+ let j=await r.json();
+ return j.results[0].regularMarketPrice||0;
+ }catch(e){return 0;}
+}
+async function render(){
+ let tb=document.getElementById("tb"),pat=0;tb.innerHTML="";
+ for(let a of carteira){
+   let p=await preco(a.ativo);
+   let t=p*a.qtd; pat+=t;
+   tb.innerHTML+=`<tr><td>${a.ativo}</td><td>${a.qtd}</td><td>R$ ${p.toFixed(2)}</td><td>R$ ${t.toFixed(2)}</td></tr>`;
+ }
+ document.getElementById("pat").innerText="R$ "+pat.toFixed(2);
+}
+function add(){
+ carteira.push({ativo:ativo.value.toUpperCase(),qtd:Number(qtd.value)});
+ localStorage.setItem("carteira",JSON.stringify(carteira));
+ ativo.value="";qtd.value="";
+ render();
+}
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js")}
+render();
+</script></body></html>
