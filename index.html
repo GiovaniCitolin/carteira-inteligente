@@ -1,58 +1,101 @@
-<!doctype html><html lang="pt-BR"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Carteira</title>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Carteira</title>
 <style>
-body{font-family:Arial;max-width:900px;margin:20px auto;padding:10px}
-input,button{padding:8px;margin:4px}
-table{width:100%;border-collapse:collapse}
+body{font-family:Arial;max-width:900px;margin:auto;padding:20px;background:#f4f4f4}
+table{width:100%;border-collapse:collapse;background:#fff}
 th,td{border:1px solid #ddd;padding:8px;text-align:center}
-</style></head><body>
+input,button{padding:8px;margin:5px}
+</style>
+</head>
+<body>
+
 <h2>Minha Carteira</h2>
-<p>API Key BRAPI (opcional): <input id="apikey" placeholder="Cole sua chave"></p>
-<input id="ativo" placeholder="Ativo (IVVB11)">
+
+<input id="ativo" placeholder="IVVB11">
 <input id="qtd" type="number" placeholder="Qtd">
 <input id="compra" type="number" step="0.01" placeholder="Preço de compra">
+
 <button onclick="adicionar()">Adicionar</button>
-<button onclick="render()">Atualizar Cotações</button>
-<p id="hora"></p>
+<button onclick="atualizarTudo()">Atualizar</button>
+
 <table>
-<thead><tr><th>Ativo</th><th>Qtd</th><th>Compra</th><th>Atual</th><th>Investido</th><th>Atual</th><th>Resultado</th></tr></thead>
-<tbody id="tb"></tbody></table>
-<h3 id="total"></h3>
+<thead>
+<tr>
+<th>Ativo</th>
+<th>Qtd</th>
+<th>Compra</th>
+<th>Preço Atual</th>
+<th>Lucro/Prejuízo</th>
+</tr>
+</thead>
+<tbody id="tabela"></tbody>
+</table>
+
+<h3 id="total">Patrimônio: R$ 0,00</h3>
+
 <script>
-let carteira=JSON.parse(localStorage.getItem("cart")||"[]");
-document.getElementById("apikey").value=localStorage.getItem("apikey")||"";
-apikey.onchange=()=>localStorage.setItem("apikey",apikey.value);
+let carteira=[];
+
 function adicionar(){
- carteira.push({ativo:ativo.value.toUpperCase(),qtd:+qtd.value,compra:+compra.value});
- localStorage.setItem("cart",JSON.stringify(carteira));
- ativo.value=qtd.value=compra.value="";
- render();
+ carteira.push({
+   ativo:document.getElementById("ativo").value.toUpperCase(),
+   qtd:Number(document.getElementById("qtd").value),
+   compra:Number(document.getElementById("compra").value)
+ });
+ atualizarTudo();
 }
-async function cotacao(a){
+
+async function buscarPreco(ativo){
  try{
-   let url="https://brapi.dev/api/quote/"+a;
-   let k=localStorage.getItem("apikey");
-   let opt={headers:{}};
-   if(k) opt.headers.Authorization="Bearer "+k;
-   let r=await fetch(url,opt);
-   let j=await r.json();
-   return j.results?.[0]?.regularMarketPrice??null;
- }catch(e){return null;}
-}
-async function render(){
- let tb=document.getElementById("tb");tb.innerHTML="";
- let inv=0,atu=0;
- for(let i of carteira){
-   let p=await cotacao(i.ativo);
-   let invest=i.compra*i.qtd;
-   let atual=(p??0)*i.qtd;
-   inv+=invest;atu+=atual;
-   let res=atual-invest;
-   tb.innerHTML+=`<tr><td>${i.ativo}</td><td>${i.qtd}</td><td>R$ ${i.compra.toFixed(2)}</td><td>${p==null?"Erro API":"R$ "+p.toFixed(2)}</td><td>R$ ${invest.toFixed(2)}</td><td>R$ ${atual.toFixed(2)}</td><td>${res>=0?"+":""}R$ ${res.toFixed(2)}</td></tr>`;
+   const url="https://corsproxy.io/?https://query1.finance.yahoo.com/v8/finance/chart/"+ativo+".SA";
+   const r=await fetch(url);
+   const j=await r.json();
+   return j.chart.result[0].meta.regularMarketPrice;
+ }catch(e){
+   return null;
  }
- total.innerHTML=`Investido: R$ ${inv.toFixed(2)} | Atual: R$ ${atu.toFixed(2)} | Resultado: ${(atu-inv>=0?"+":"")}R$ ${(atu-inv).toFixed(2)}`;
- hora.textContent="Última atualização: "+new Date().toLocaleString();
 }
-render(); setInterval(render,300000);
-</script></body></html>
+
+async function atualizarTudo(){
+ let html="";
+ let patrimonio=0;
+
+ for(const item of carteira){
+   const preco=await buscarPreco(item.ativo);
+
+   if(preco===null){
+      html+=`<tr>
+      <td>${item.ativo}</td>
+      <td>${item.qtd}</td>
+      <td>R$ ${item.compra.toFixed(2)}</td>
+      <td>Erro</td>
+      <td>-</td>
+      </tr>`;
+      continue;
+   }
+
+   const lucro=(preco-item.compra)*item.qtd;
+   patrimonio+=preco*item.qtd;
+
+   html+=`<tr>
+   <td>${item.ativo}</td>
+   <td>${item.qtd}</td>
+   <td>R$ ${item.compra.toFixed(2)}</td>
+   <td>R$ ${preco.toFixed(2)}</td>
+   <td style="color:${lucro>=0?'green':'red'}">
+   R$ ${lucro.toFixed(2)}
+   </td>
+   </tr>`;
+ }
+
+ document.getElementById("tabela").innerHTML=html;
+ document.getElementById("total").textContent="Patrimônio: R$ "+patrimonio.toFixed(2);
+}
+</script>
+
+</body>
+</html>
