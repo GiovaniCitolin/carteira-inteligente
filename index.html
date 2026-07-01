@@ -3,109 +3,130 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Minha Carteira</title>
+<title>Carteira</title>
 <style>
-body{font-family:Arial;max-width:980px;margin:auto;padding:20px;background:#f4f4f4}
-table{width:100%;border-collapse:collapse;background:#fff}
-th,td{border:1px solid #ddd;padding:8px;text-align:center}
-input,button{padding:8px;margin:4px}
-button{cursor:pointer}
+*{box-sizing:border-box}
+body{
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+background:#eef2f7;
+color:#1f2937;
+}
+.container{max-width:900px;margin:24px auto;padding:16px}
+.card{
+background:#fff;border-radius:18px;padding:18px;
+box-shadow:0 8px 24px rgba(0,0,0,.08);
+margin-bottom:18px;
+}
+h1{margin:0 0 16px;font-size:28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+input{
+width:100%;padding:12px;border:1px solid #d1d5db;border-radius:12px;font-size:15px
+}
+.actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+button{
+border:none;border-radius:12px;padding:12px 16px;font-weight:600;cursor:pointer
+}
+.primary{background:#2563eb;color:#fff}
+.secondary{background:#10b981;color:#fff}
+.danger{background:#ef4444;color:#fff}
+.edit{background:#f59e0b;color:#fff}
+table{width:100%;border-collapse:collapse}
+th{background:#f8fafc}
+th,td{padding:12px;border-bottom:1px solid #e5e7eb;text-align:center}
+.profit{color:#16a34a;font-weight:700}
+.loss{color:#dc2626;font-weight:700}
+.summary{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff}
+.total{font-size:30px;font-weight:700}
+@media(max-width:700px){
+table{font-size:13px}
+button{padding:10px}
+.total{font-size:24px}
+}
 </style>
 </head>
 <body>
-<h2>Minha Carteira</h2>
+<div class="container">
 
-<input id="ativo" placeholder="IVVB11">
-<input id="qtd" type="number" placeholder="Qtd">
+<div class="card summary">
+<div>
+<div>Patrimônio Atual</div>
+<div class="total" id="total">R$ 0,00</div>
+</div>
+<button class="secondary" onclick="atualizarTudo()">Atualizar</button>
+</div>
+
+<div class="card">
+<h1>Minha Carteira</h1>
+<div class="grid">
+<input id="ativo" placeholder="Ativo (IVVB11)">
+<input id="qtd" type="number" placeholder="Quantidade">
 <input id="compra" type="number" step="0.01" placeholder="Preço de compra">
 <input id="dataCompra" type="date">
-<button onclick="salvar()">Salvar</button>
-<button onclick="atualizarTudo()">Atualizar</button>
+</div>
+<div class="actions">
+<button class="primary" onclick="salvar()">Salvar</button>
+</div>
+</div>
 
+<div class="card">
 <table>
 <thead>
 <tr>
-<th>Ativo</th><th>Qtd</th><th>Preço Compra</th><th>Data Compra</th>
-<th>Preço Atual</th><th>Lucro/Prejuízo</th><th>Ações</th>
+<th>Ativo</th><th>Qtd</th><th>Compra</th><th>Data</th><th>Atual</th><th>Resultado</th><th>Ações</th>
 </tr>
 </thead>
 <tbody id="tabela"></tbody>
 </table>
+</div>
 
-<h3 id="total">Patrimônio: R$ 0,00</h3>
+</div>
 
 <script>
-let carteira=[];
-let editando=-1;
+let carteira=[],editando=-1;
 
-async function buscarPreco(ativo){
+async function buscarPreco(a){
  try{
-   const url="https://corsproxy.io/?https://query1.finance.yahoo.com/v8/finance/chart/"+ativo+".SA";
-   const r=await fetch(url);
-   const j=await r.json();
-   return j.chart.result[0].meta.regularMarketPrice;
+ let u="https://corsproxy.io/?https://query1.finance.yahoo.com/v8/finance/chart/"+a+".SA";
+ let r=await fetch(u);
+ let j=await r.json();
+ return j.chart.result[0].meta.regularMarketPrice;
  }catch(e){return null;}
 }
-
-function limpar(){
- ativo.value="";
- qtd.value="";
- compra.value="";
- dataCompra.value="";
- editando=-1;
-}
-
+function limpar(){ativo.value="";qtd.value="";compra.value="";dataCompra.value="";editando=-1;}
 function salvar(){
- const item={
-   ativo:ativo.value.toUpperCase(),
-   qtd:Number(qtd.value),
-   compra:Number(compra.value),
-   data:dataCompra.value
- };
- if(editando==-1) carteira.push(item);
- else carteira[editando]=item;
- limpar();
- atualizarTudo();
+ let o={ativo:ativo.value.toUpperCase(),qtd:+qtd.value,compra:+compra.value,data:dataCompra.value};
+ if(editando==-1)carteira.push(o); else carteira[editando]=o;
+ limpar(); atualizarTudo();
 }
-
 function editar(i){
- const c=carteira[i];
- ativo.value=c.ativo;
- qtd.value=c.qtd;
- compra.value=c.compra;
- dataCompra.value=c.data;
- editando=i;
+ let c=carteira[i];
+ ativo.value=c.ativo;qtd.value=c.qtd;compra.value=c.compra;dataCompra.value=c.data;editando=i;
 }
-
 function excluir(i){
- if(confirm("Excluir este ativo?")){
-   carteira.splice(i,1);
-   atualizarTudo();
- }
+ if(confirm("Excluir ativo?")){carteira.splice(i,1);atualizarTudo();}
 }
-
 async function atualizarTudo(){
  let html="",pat=0;
  for(let i=0;i<carteira.length;i++){
-   const it=carteira[i];
-   const preco=await buscarPreco(it.ativo);
-   const lucro=preco===null?0:(preco-it.compra)*it.qtd;
-   if(preco!==null) pat+=preco*it.qtd;
+   let c=carteira[i],p=await buscarPreco(c.ativo);
+   let lucro=0,cls="";
+   if(p!=null){pat+=p*c.qtd;lucro=(p-c.compra)*c.qtd;cls=lucro>=0?"profit":"loss";}
    html+=`<tr>
-   <td>${it.ativo}</td>
-   <td>${it.qtd}</td>
-   <td>R$ ${it.compra.toFixed(2)}</td>
-   <td>${it.data||"-"}</td>
-   <td>${preco===null?"Erro":"R$ "+preco.toFixed(2)}</td>
-   <td style="color:${lucro>=0?"green":"red"}">${preco===null?"-":"R$ "+lucro.toFixed(2)}</td>
+   <td><b>${c.ativo}</b></td>
+   <td>${c.qtd}</td>
+   <td>R$ ${c.compra.toFixed(2)}</td>
+   <td>${c.data||"-"}</td>
+   <td>${p==null?"Erro":"R$ "+p.toFixed(2)}</td>
+   <td class="${cls}">${p==null?"-":"R$ "+lucro.toFixed(2)}</td>
    <td>
-     <button onclick="editar(${i})">Editar</button>
-     <button onclick="excluir(${i})">Excluir</button>
+   <button class="edit" onclick="editar(${i})">✏️</button>
+   <button class="danger" onclick="excluir(${i})">🗑️</button>
    </td>
    </tr>`;
  }
  tabela.innerHTML=html;
- total.textContent="Patrimônio: R$ "+pat.toFixed(2);
+ total.textContent="R$ "+pat.toFixed(2);
 }
 </script>
 </body>
