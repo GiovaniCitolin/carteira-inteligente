@@ -1,9 +1,12 @@
-
-body{margin:0;font-family:Arial;background:#0d1117;color:#fff;display:flex}
-.sidebar{width:240px;background:#161b22;padding:20px;height:100vh}
-.sidebar button{width:100%;margin:5px 0;padding:12px}
-.content{flex:1;padding:20px}
-.hidden{display:none}
-table{width:100%;border-collapse:collapse}
-th,td{border:1px solid #333;padding:8px}
-input,button{padding:10px;margin:5px}
+body{margin:0;background:#eef3f8;font-family:Arial}
+.container{max-width:700px;margin:auto;padding:16px}
+.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
+.header{display:flex;justify-content:space-between;align-items:center}
+.valor{font-size:28px;font-weight:bold;color:#2563eb}
+input,button{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid #ccc;box-sizing:border-box}
+button{background:#2563eb;color:#fff;border:none;font-weight:bold}
+.ativo{border-left:6px solid #2563eb}
+.row{display:flex;justify-content:space-between;margin:6px 0}
+.acoes button{width:auto;margin-right:8px}
+.lucro{color:#0a8f3d;font-weight:bold}
+.preju{color:#c62828;font-weight:bold}

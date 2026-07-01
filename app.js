@@ -1,37 +1,60 @@
+let carteira=JSON.parse(localStorage.getItem('cart')||'[]');
+let edit=-1;
 
-const ativos=[
-{name:'IVVB11',pct:40,cot:423.5},
-{name:'HGLG11',pct:25,cot:150.99},
-{name:'MXRF11',pct:15,cot:9.64},
-{name:'KNCR11',pct:10,cot:106},
-{name:'CPTS11',pct:7,cot:7.48},
-{name:'HGBS11',pct:3,cot:19.57}
-];
-
-function showTab(id){
-document.querySelectorAll('.tab').forEach(t=>t.classList.add('hidden'));
-document.getElementById(id).classList.remove('hidden');
+async function preco(a){
+ try{
+  const url="https://corsproxy.io/?https://query1.finance.yahoo.com/v8/finance/chart/"+a+".SA";
+  const r=await fetch(url);
+  const j=await r.json();
+  return j.chart.result[0].meta.regularMarketPrice;
+ }catch(e){return null;}
 }
 
-function calcular(){
-const aporte=Number(document.getElementById('aporteValor').value||0);
-let html='';
-ativos.forEach(a=>{
-let v=aporte*a.pct/100;
-let q=Math.floor(v/a.cot);
-html+=`<tr><td>${a.name}</td><td>${a.pct}%</td><td>R$ ${v.toFixed(2)}</td><td>${q}</td></tr>`;
-});
-document.getElementById('resultado').innerHTML=html;
+function salvar(){
+ const o={ativo:ativo.value.toUpperCase(),qtd:+qtd.value,compra:+compra.value,data:data.value};
+ if(edit==-1) carteira.push(o); else carteira[edit]=o;
+ localStorage.setItem('cart',JSON.stringify(carteira));
+ edit=-1;
+ ativo.value=qtd.value=compra.value=data.value="";
+ atualizar();
 }
 
-function simular(){
-let total=Number(document.getElementById('pat').value);
-let aporte=Number(document.getElementById('mensal').value);
-let anos=Number(document.getElementById('anos').value);
-let taxa=Number(document.getElementById('taxa').value)/100;
-for(let i=0;i<anos*12;i++){total=(total+aporte)*(1+taxa/12);}
-document.getElementById('resultadoSim').innerText='R$ '+total.toLocaleString('pt-BR',{maximumFractionDigits:2});
+function editar(i){
+ const c=carteira[i];
+ ativo.value=c.ativo;qtd.value=c.qtd;compra.value=c.compra;data.value=c.data;
+ edit=i;
 }
-calcular();
 
-if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(()=>{});}
+function excluir(i){
+ carteira.splice(i,1);
+ localStorage.setItem('cart',JSON.stringify(carteira));
+ atualizar();
+}
+
+async function atualizar(){
+ let lista=document.getElementById("lista");
+ lista.innerHTML="";
+ let pat=0;
+ for(let i=0;i<carteira.length;i++){
+   let c=carteira[i];
+   let p=await preco(c.ativo);
+   let atual=p?p*c.qtd:0;
+   pat+=atual;
+   let lucro=p?(atual-c.compra*c.qtd):0;
+   lista.innerHTML+=`
+   <div class="card ativo">
+     <h2>${c.ativo}</h2>
+     <div class="row"><span>Quantidade</span><b>${c.qtd}</b></div>
+     <div class="row"><span>Compra</span><b>R$ ${c.compra.toFixed(2)}</b></div>
+     <div class="row"><span>Atual</span><b>${p?"R$ "+p.toFixed(2):"Erro"}</b></div>
+     <div class="row"><span>Data</span><b>${c.data||"-"}</b></div>
+     <div class="row"><span>Resultado</span><b class="${lucro>=0?"lucro":"preju"}">${p?"R$ "+lucro.toFixed(2):"-"}</b></div>
+     <div class="acoes">
+       <button onclick="editar(${i})">✏️ Editar</button>
+       <button onclick="excluir(${i})">🗑️ Excluir</button>
+     </div>
+   </div>`;
+ }
+ document.getElementById("patrimonio").textContent="R$ "+pat.toFixed(2);
+}
+atualizar();

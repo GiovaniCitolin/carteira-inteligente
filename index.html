@@ -3,122 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Carteira com FIIs</title>
-<style>
-*{box-sizing:border-box}body{margin:0;background:#eef2f6;font-family:Arial,sans-serif}
-.wrap{max-width:980px;margin:auto;padding:18px}
-.card{background:#fff;border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 6px 18px rgba(0,0,0,.08)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
-input,button{padding:11px;border-radius:10px;border:1px solid #ccc}
-button{border:none;background:#2563eb;color:#fff;font-weight:bold;cursor:pointer}
-table{width:100%;border-collapse:collapse}
-th,td{padding:10px;border-bottom:1px solid #e5e7eb;text-align:center}
-.ok{color:#0f9d58;font-weight:bold}.bad{color:#d93025;font-weight:bold}
-.top{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff}
-.big{font-size:28px;font-weight:bold}
-small{color:#666}
-</style>
+<title>Minha Carteira</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="wrap">
-<div class="card top">
-<div><div>Patrimônio</div><div id="pat" class="big">R$ 0,00</div></div>
-<div><div>Dividendos previstos</div><div id="divTotal" class="big">R$ 0,00</div></div>
+<div class="container">
+  <div class="header card">
+    <div>
+      <h1>Minha Carteira</h1>
+      <small>Patrimônio</small>
+      <div id="patrimonio" class="valor">R$ 0,00</div>
+    </div>
+    <button onclick="atualizar()">Atualizar</button>
+  </div>
+
+  <div class="card">
+    <input id="ativo" placeholder="IVVB11">
+    <input id="qtd" type="number" placeholder="Quantidade">
+    <input id="compra" type="number" step="0.01" placeholder="Preço de compra">
+    <input id="data" type="date">
+    <button onclick="salvar()">Salvar</button>
+  </div>
+
+  <div id="lista"></div>
 </div>
-
-<div class="card">
-<div class="grid">
-<input id="ativo" placeholder="MXRF11">
-<input id="qtd" type="number" placeholder="Qtd">
-<input id="compra" type="number" step="0.01" placeholder="Preço compra">
-<input id="dataCompra" type="date">
-</div>
-<br>
-<button onclick="salvar()">Salvar</button>
-<button onclick="render()">Atualizar</button>
-</div>
-
-<div class="card">
-<table>
-<thead>
-<tr>
-<th>Ativo</th><th>Qtd</th><th>Compra</th><th>Atual</th><th>Resultado</th><th>Últ. Div.</th><th>Previsto</th><th>Ações</th>
-</tr>
-</thead>
-<tbody id="tb"></tbody>
-</table>
-<small>* Nesta versão de teste, os dividendos são informados manualmente na tabela de exemplo abaixo. Depois podemos ligar em uma API.</small>
-</div>
-</div>
-
-<script>
-let carteira=[],edit=-1;
-
-// Dividendos de demonstração (R$/cota)
-const dividendos={
- MXRF11:0.10,
- HGLG11:1.10,
- XPLG11:0.82,
- KNRI11:1.00,
- VISC11:0.80
-};
-
-async function preco(a){
- try{
-   const u="https://corsproxy.io/?https://query1.finance.yahoo.com/v8/finance/chart/"+a+".SA";
-   const r=await fetch(u);
-   const j=await r.json();
-   return j.chart.result[0].meta.regularMarketPrice;
- }catch(e){return null;}
-}
-
-function salvar(){
- const o={ativo:ativo.value.toUpperCase(),qtd:+qtd.value,compra:+compra.value,data:dataCompra.value};
- if(edit==-1)carteira.push(o); else carteira[edit]=o;
- edit=-1;
- ativo.value=qtd.value=compra.value=dataCompra.value="";
- render();
-}
-
-function editar(i){
- let c=carteira[i];
- ativo.value=c.ativo;
- qtd.value=c.qtd;
- compra.value=c.compra;
- dataCompra.value=c.data;
- edit=i;
-}
-
-function excluir(i){
- carteira.splice(i,1);
- render();
-}
-
-async function render(){
- let html="",pat=0,divs=0;
- for(let i=0;i<carteira.length;i++){
-   let c=carteira[i];
-   let p=await preco(c.ativo);
-   let lucro=p?((p-c.compra)*c.qtd):0;
-   let div=(dividendos[c.ativo]||0);
-   let previsto=div*c.qtd;
-   divs+=previsto;
-   if(p) pat+=p*c.qtd;
-   html+=`<tr>
-   <td><b>${c.ativo}</b><br><small>${c.data||""}</small></td>
-   <td>${c.qtd}</td>
-   <td>R$ ${c.compra.toFixed(2)}</td>
-   <td>${p?"R$ "+p.toFixed(2):"Erro"}</td>
-   <td class="${lucro>=0?"ok":"bad"}">${p?"R$ "+lucro.toFixed(2):"-"}</td>
-   <td>${div?("R$ "+div.toFixed(2)+"/cota"):"-"}</td>
-   <td>${div?("R$ "+previsto.toFixed(2)):"-"}</td>
-   <td><button onclick="editar(${i})">✏️</button> <button style="background:#dc2626" onclick="excluir(${i})">🗑️</button></td>
-   </tr>`;
- }
- tb.innerHTML=html;
- pat.textContent="R$ "+pat.toFixed(2);
- divTotal.textContent="R$ "+divs.toFixed(2);
-}
-</script>
+<script src="app.js"></script>
 </body>
 </html>
