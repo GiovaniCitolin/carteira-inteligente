@@ -26,7 +26,14 @@
     <button onclick="salvar()">Salvar</button>
   </div>
 
-  <div id="lista"></div>
+  <button id="toggleLista" onclick="
+const l=document.getElementById('lista');
+const b=document.getElementById('toggleLista');
+if(l.style.display==='none'){l.style.display='block';b.textContent='Ocultar ativos';}
+else{l.style.display='none';b.textContent='Mostrar ativos';}
+">Mostrar ativos</button>
+
+<div id="lista" style="display:none"></div>
 </div>
 <script src="app.js"></script>
 </body>
