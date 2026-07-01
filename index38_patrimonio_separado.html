@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Minha Carteira</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+  <div class="header card">
+    <div>
+      <h1>Minha Carteira</h1>
+      <small>Patrimônio Total</small>
+      <div id="patrimonio" class="valor">R$ 0,00</div>
+      <small style="margin-top:8px;display:block">Valor atualizado dos ativos</small>
+      <div id="valorAtivos" class="valor">R$ 0,00</div>
+      <small style="margin-top:8px;display:block">Rendimento</small>
+      <div id="rendimento" class="valor" style="color:#1b8f3a">R$ 0,00</div>
+    </div>
+    <button onclick="atualizar()">Atualizar</button>
+  </div>
+
+  <div class="card">
+    <input id="ativo" placeholder="IVVB11">
+    <input id="qtd" type="number" placeholder="Quantidade">
+    <input id="compra" type="number" step="0.01" placeholder="Preço de compra">
+    <input id="data" type="date">
+    <button onclick="salvar()">Salvar</button>
+  </div>
+
+  <div id="lista"></div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
