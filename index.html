@@ -12,8 +12,12 @@
   <div class="header card">
     <div>
       <h1>Minha Carteira</h1>
-      <small>Patrimônio</small>
+      <small>Patrimônio Total</small>
       <div id="patrimonio" class="valor">R$ 0,00</div>
+      <small style="margin-top:8px;display:block">Valor atualizado dos ativos</small>
+      <div id="valorAtivos" class="valor">R$ 0,00</div>
+      <small style="margin-top:8px;display:block">Rendimento</small>
+      <div id="rendimento" class="valor" style="color:#1b8f3a">R$ 0,00</div>
     </div>
     <button onclick="atualizar()">Atualizar</button>
   </div>
@@ -26,14 +30,7 @@
     <button onclick="salvar()">Salvar</button>
   </div>
 
-  <button id="toggleLista" onclick="
-const l=document.getElementById('lista');
-const b=document.getElementById('toggleLista');
-if(l.style.display==='none'){l.style.display='block';b.textContent='Ocultar ativos';}
-else{l.style.display='none';b.textContent='Mostrar ativos';}
-">Mostrar ativos</button>
-
-<div id="lista" style="display:none"></div>
+  <div id="lista"></div>
 </div>
 <script src="app.js"></script>
 </body>
